@@ -3,6 +3,7 @@
 #include<ctime>
 #include<vector>
 
+
 using namespace std;
 
 enum string_code {
@@ -40,18 +41,18 @@ vector<vector<vector<int> > > meshgrid(vector<int> v)
   return res;
 }
 
-vector<vector<float> euclidean()
 
-float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func='euclidean', float lambda=0, float log_fudge=0)
+
+float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
 {
   clock_t begin=clock();
   vector<vector<vector<int> > > yres = meshgrid(xi);
   vector<vector<vector<int> > > xres = meshgrid(yi);
   int poly;
 
-  switch (hashit(stringValue)) {
+  switch (hashit(basis_func)) {
     case euclideanH:
-      euclidean(x1, x2, y1, y2, log_fudge);
+      // euclidean(x1, x2, y1, y2, log_fudge);
       poly=1;
       break;
     case thin_plate_splineH:
