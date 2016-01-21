@@ -253,6 +253,24 @@ vector<vector<float> > multiquadratic(vector<vector<int> > x1, vector<vector<int
   return res;
 }
 
+vector<vector<float> > triharmonic_spline(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 0) {
+  vector<vector<float> > rr, res;
+  rr = euclidean(x1, x2, y1, y2);
+  float aa = log_fudge;
+  res = elementWiseMatMul(rr, rr);
+  res = elementWiseMatMul(res,res);
+  res=elementWiseMatMul(res,matLog(rr));
+  int i, j;
+  for(i = 0; i < rr.size(); i++) {
+    for(j = 0; j < rr[0].size(); j++) {
+      if(rr[i][j] == 0) {
+        res[i][j] = log_fudge;
+      }
+    }
+  }
+  display(res);
+  return res;
+}
 
 float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
 {
@@ -286,7 +304,7 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
       poly=0;
       break;
     case triharmonic_splineH:
-      //TODO
+    basis=triharmonic_spline(xres[0], xres[1], yres[0], yres[1], log_fudge);
       poly=0;
       break;
   }
@@ -358,6 +376,6 @@ int main()
   display(xx);
   display(yy);
 
-  float zz = rbf(xi, yi, zi, xx, yy, "multiquadratic", 1, 2);
+  float zz = rbf(xi, yi, zi, xx, yy, "triharmonic_spline", 1, 2);
   printf("%f\n", zz);
 }
