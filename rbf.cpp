@@ -268,7 +268,6 @@ vector<vector<float> > triharmonic_spline(vector<vector<int> > x1, vector<vector
       }
     }
   }
-  display(res);
   return res;
 }
 
