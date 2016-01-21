@@ -146,6 +146,28 @@ vector<vector<float> > concatTwoMatsBottom(vector<vector<float> > A, vector<vect
   return res;
 }
 
+vector<vector<float> > matLog(vector<vector<float> > v) {
+  vector<vector<float> > res = v;
+  int i, j;
+  for(i = 0; i < v.size(); i++) {
+    for(j = 0; j < v[0].size(); j++) {
+      res[i][j] = log(v[i][j]);
+    }
+  }
+  return res;
+}
+
+vector<vector<float> > elementWiseMatMul(vector<vector<float> > A, vector<vector<float> > B) {
+  int i, j;
+  vector<vector<float> > res = A;
+  for(i = 0; i < A.size(); i++) {
+    for(j = 0; j < A[0].size(); j++) {
+      res[i][j] = A[i][j]*B[i][j];
+    }
+  }
+  return res;
+}
+
 vector<vector<vector<int> > > meshgrid(vector<int> v)
 {
   int i, j;
@@ -179,6 +201,21 @@ vector<vector<float> > euclidean(vector<vector<int> > x1, vector<vector<int> > x
   return res;
 }
 
+vector<vector<float> > thin_plate_spline(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 1) {
+  vector<vector<float> > rr, res;
+  rr = euclidean(x1, x2, y1, y2);
+  res = elementWiseMatMul(elementWiseMatMul(rr, rr), matLog(rr));
+  int i, j;
+  for(i = 0; i < rr.size(); i++) {
+    for(j = 0; j < rr[0].size(); j++) {
+      if(rr[i][j] == 0) {
+        res[i][j] = log_fudge;
+      }
+    }
+  }
+  return res;
+}
+
 float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
 {
   clock_t begin=clock();
@@ -199,7 +236,7 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
       poly=1;
       break;
     case thin_plate_splineH:
-      //TODO
+      basis=thin_plate_spline(xres[0], xres[1], yres[0], yres[1], log_fudge);
       poly=1;
       break;
     case gaussianH:
