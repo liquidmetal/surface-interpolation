@@ -2,7 +2,8 @@
 #include<string>
 #include<ctime>
 #include<vector>
-
+#include<stdio.h>
+#include<math.h>
 
 using namespace std;
 
@@ -20,6 +21,43 @@ string_code hashit (string const& inString) {
   if (inString == "gaussian") return gaussianH;
   if (inString == "multiquadratic") return multiquadraticH;
   if (inString == "triharmonic_spline") return triharmonic_splineH;
+}
+
+float square(float x)
+{
+  return pow(x, 2);
+}
+
+void display(vector<vector<float> > v) {
+  int i, j;
+  for(i = 0; i < v.size(); i++) {
+    for(j = 0; j < v[0].size(); j++) {
+      printf("%f ", v[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+void display(vector<vector<int> > v) {
+  int i, j;
+  for(i = 0; i < v.size(); i++) {
+    for(j = 0; j < v[0].size(); j++) {
+      printf("%d ", v[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+float mean(vector<vector<float> > v) {
+  int i, j;
+  float res;
+  for(i = 0; i < v.size(); i++) {
+    for(j= 0; j < v[0].size(); j++) {
+      res += v[i][j];
+    }
+  }
+  res /= v.size()*v[0].size();
+  return res;
 }
 
 vector<vector<vector<int> > > meshgrid(vector<int> v)
@@ -41,18 +79,36 @@ vector<vector<vector<int> > > meshgrid(vector<int> v)
   return res;
 }
 
-
+vector<vector<float> > euclidean(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2)
+{
+  vector<vector<float> > res;
+  vector<float> dummy(x1[0].size());
+  int i, j;
+  for(i = 0; i < x1.size(); i++) {
+    res.push_back(dummy);
+    for(j = 0; j < x1[0].size(); j++) {
+      res[i][j] = sqrt(square(x1[i][j]-x2[i][j]) + square(y1[i][j]-y2[i][j]));
+    }
+  }
+  return res;
+}
 
 float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
 {
   clock_t begin=clock();
   vector<vector<vector<int> > > yres = meshgrid(xi);
   vector<vector<vector<int> > > xres = meshgrid(yi);
-  int poly;
+  int poly, i,j;
+  vector<vector<float> > basis;
+
+  display(xres[0]);
+  display(xres[1]);
+  display(yres[0]);
+  display(yres[1]);
 
   switch (hashit(basis_func)) {
     case euclideanH:
-      // euclidean(x1, x2, y1, y2, log_fudge);
+      basis=euclidean(xres[0], xres[1], yres[0], yres[1]);
       poly=1;
       break;
     case thin_plate_splineH:
@@ -73,9 +129,19 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
       break;
   }
 
+  if(lambda != 0) {
+    vector<vector<float> > scale;
+    scale = euclidean(xres[0], xres[1], yres[0], yres[1]);
+    float scale_mean = mean(scale);
+    lambda = square(scale_mean) * lambda;
+    printf("%f\n", lambda);
+  }
+
   clock_t end=clock();
   float elapsed_sec=double(end-begin)/CLOCKS_PER_SEC;
-  printf("%f",elapsed_sec);
+  printf("Elapsed time: %f\n",elapsed_sec);
+
+  return 0;
 }
 
 int main()
@@ -108,30 +174,9 @@ int main()
     dummy.clear();
     dummy1.clear();
   }
-  for(i = 0; i < 11; i++) {
-    for(j = 0; j < 11; j++) {
-      printf("%d ", xx[i][j]);
-    }
-    printf("\n");
-  }
-  for(i = 0; i < 11; i++) {
-    for(j = 0; j < 11; j++) {
-      printf("%d ", yy[i][j]);
-    }
-    printf("\n");
-  }
-  // vector<vector<vector<int> > > xres = meshgrid(yi);
-  // vector<vector<vector<int> > > yres = meshgrid(xi);
-  // for(i = 0; i < xres[0][0].size(); i++) {
-  //   for(j = 0; j < xres[0][0].size(); j++) {
-  //     printf("%d ", xres[0][i][j]);
-  //   }
-  //   printf("\n");
-  // }
-  // for(i = 0; i < xres[1][0].size(); i++) {
-  //   for(j = 0; j < xres[1][0].size(); j++) {
-  //     printf("%d ", xres[1][i][j]);
-  //   }
-  //   printf("\n");
-  // }
+  display(xx);
+  display(yy);
+
+  float zz = rbf(xi, yi, zi, xx, yy);
+  printf("%f\n", zz);
 }
