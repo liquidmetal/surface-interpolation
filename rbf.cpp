@@ -157,12 +157,23 @@ vector<vector<float> > matLog(vector<vector<float> > v) {
   return res;
 }
 
-vector<vector<float> > elementWiseMatMul(vector<vector<float> > A, vector<vector<float> > B) {
+vector<vector<float> > elementWiseMatMul(vector<vector<float> > A, vector<vector<float> > B, float c = 1) {
   int i, j;
   vector<vector<float> > res = A;
   for(i = 0; i < A.size(); i++) {
     for(j = 0; j < A[0].size(); j++) {
-      res[i][j] = A[i][j]*B[i][j];
+      res[i][j] = A[i][j]*B[i][j]*c;
+    }
+  }
+  return res;
+}
+
+vector<vector<float> > expMat(vector<vector<float> > A) {
+  int i, j;
+  vector<vector<float> > res = A;
+  for(i = 0; i < A.size(); i++) {
+    for(j = 0; j < A[0].size(); j++) {
+      res[i][j] = exp(A[i][j]);
     }
   }
   return res;
@@ -216,6 +227,33 @@ vector<vector<float> > thin_plate_spline(vector<vector<int> > x1, vector<vector<
   return res;
 }
 
+vector<vector<float> > gaussian(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 1) {
+  vector<vector<float> > rr, res;
+  rr = euclidean(x1, x2, y1, y2);
+  float aa = log_fudge;
+  res = expMat(elementWiseMatMul(rr, rr, aa));
+  display(res);
+  return res;
+}
+
+vector<vector<float> > multiquadratic(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 1) {
+  vector<vector<float> > rr, res;
+  rr = euclidean(x1, x2, y1, y2);
+  float cc = log_fudge;
+  res = elementWiseMatMul(rr, rr);
+  vector<vector<float> > cc_square = res;
+  for(int i=0;i<res.size();i++)
+  {
+    for(int j=0;j<res[0].size();j++)
+    {
+      cc_square[i][j]=cc*cc;
+    }
+  }
+  res=matAdd(res,cc_square);
+  return res;
+}
+
+
 float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
 {
   clock_t begin=clock();
@@ -240,11 +278,11 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
       poly=1;
       break;
     case gaussianH:
-      //TODO
+      basis=gaussian(xres[0], xres[1], yres[0], yres[1], log_fudge);
       poly=0;
       break;
     case multiquadraticH:
-      //TODO
+      basis=multiquadratic(xres[0], xres[1], yres[0], yres[1], log_fudge);
       poly=0;
       break;
     case triharmonic_splineH:
@@ -320,6 +358,6 @@ int main()
   display(xx);
   display(yy);
 
-  float zz = rbf(xi, yi, zi, xx, yy);
+  float zz = rbf(xi, yi, zi, xx, yy, "multiquadratic", 1, 2);
   printf("%f\n", zz);
 }
