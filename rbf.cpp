@@ -60,6 +60,92 @@ float mean(vector<vector<float> > v) {
   return res;
 }
 
+vector<vector<float> > eye(int n, float val=1)
+{
+  vector<vector<float> > identity;
+  vector<float> dummy(n);
+
+  int i;
+  for(i=0;i<n;i++)
+  {
+    dummy[i]=val;
+    identity.push_back(dummy);
+    dummy[i] = 0;
+  }
+  return identity;
+}
+
+vector<vector<float> > matAdd(vector<vector<float> > A, vector<vector<float> > B) {
+  vector<vector<float> > res;
+  vector<float> dummy(A.size());
+  int i, j;
+  for(i = 0; i < A.size(); i++) {
+    res.push_back(dummy);
+    for(j = 0; j < A[0].size(); j++) {
+      res[i][j] = A[i][j] + B[i][j];
+    }
+  }
+  return res;
+}
+
+vector<vector<float> > transpose(vector<vector<float> > A)
+{
+  int i,j;
+  vector<vector<float> > T;
+  vector<float> dummy(A.size());
+
+  for(i=0;i<A[0].size();i++)
+  {
+    T.push_back(dummy);
+    for(j=0;j<A.size();j++)
+    {
+      T[i][j]=A[j][i];
+    }
+  }
+  return T;
+}
+
+vector<float> ones(int l)
+{
+  vector<float> res;
+  for(int i=0;i<l;i++)
+  {
+    res.push_back(1);
+  }
+  return res;
+}
+
+vector<vector<float> > concatThree(vector<float> a, vector<float> b, vector<float> c)
+{
+  vector<vector<float> > res;
+  res.push_back(a);
+  res.push_back(b);
+  res.push_back(c);
+  return transpose(res);
+}
+
+vector<vector<float> > concatTwoMatsSide(vector<vector<float> > A, vector<vector<float> > B) {
+  vector<vector<float> > res;
+  vector<float> dummy;
+  int i;
+  for(i = 0; i < A.size(); i++) {
+    dummy.clear();
+    dummy = A[i];
+    dummy.insert(dummy.end(), B[i].begin(), B[i].end());
+    res.push_back(dummy);
+  }
+  return res;
+}
+
+vector<vector<float> > concatTwoMatsBottom(vector<vector<float> > A, vector<vector<float> > B) {
+  vector<vector<float> > res = A;
+  for(int i=0;i<B.size();i++)
+  {
+    res.push_back(B[i]);
+  }
+  return res;
+}
+
 vector<vector<vector<int> > > meshgrid(vector<int> v)
 {
   int i, j;
@@ -99,7 +185,8 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
   vector<vector<vector<int> > > yres = meshgrid(xi);
   vector<vector<vector<int> > > xres = meshgrid(yi);
   int poly, i,j;
-  vector<vector<float> > basis;
+  vector<vector<float> > basis, mat;
+  vector<float> ff;
 
   display(xres[0]);
   display(xres[1]);
@@ -135,6 +222,25 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
     float scale_mean = mean(scale);
     lambda = square(scale_mean) * lambda;
     printf("%f\n", lambda);
+  }
+
+  basis=matAdd(basis,eye(basis.size(),lambda));
+
+  if(poly == 0) {
+    mat = basis;
+    ff = zi;
+  }
+  else if(poly == 1) {
+    vector<float> xi_float(xi.begin(), xi.end());
+    vector<float> yi_float(yi.begin(), yi.end());
+
+    vector<vector<float> > q = concatThree(ones(xi.size()), xi_float, yi_float);
+    vector<vector<float> > q_dash = transpose(q);
+    vector<vector<float> > mat = concatTwoMatsBottom(concatTwoMatsSide(basis, q), concatTwoMatsSide(q_dash, eye(3, 0)));
+    ff = zi;
+    ff.push_back(0);
+    ff.push_back(0);
+    ff.push_back(0);
   }
 
   clock_t end=clock();
