@@ -38,14 +38,12 @@ void display(vector<vector<float> > v) {
   }
 }
 
-void display(vector<vector<int> > v) {
-  int i, j;
+void display(vector<float> v) {
+  int i;
   for(i = 0; i < v.size(); i++) {
-    for(j = 0; j < v[0].size(); j++) {
-      printf("%d ", v[i][j]);
-    }
-    printf("\n");
+    printf("%f ", v[i]);
   }
+  printf("\n");
 }
 
 float mean(vector<vector<float> > v) {
@@ -168,6 +166,28 @@ vector<vector<float> > elementWiseMatMul(vector<vector<float> > A, vector<vector
   return res;
 }
 
+vector<vector<float> > constantMatAdd(vector<vector<float> > A, float c) {
+  int i, j;
+  vector<vector<float> > res = A;
+  for(i = 0; i < A.size(); i++) {
+    for(j = 0; j < A[0].size(); j++) {
+      res[i][j] += c;
+    }
+  }
+  return res;
+}
+
+vector<vector<float> > constantMatMul(vector<vector<float> > A, float c) {
+  int i, j;
+  vector<vector<float> > res = A;
+  for(i = 0; i < A.size(); i++) {
+    for(j = 0; j < A[0].size(); j++) {
+      res[i][j] *= c;
+    }
+  }
+  return res;
+}
+
 vector<vector<float> > expMat(vector<vector<float> > A) {
   int i, j;
   vector<vector<float> > res = A;
@@ -179,11 +199,21 @@ vector<vector<float> > expMat(vector<vector<float> > A) {
   return res;
 }
 
-vector<vector<vector<int> > > meshgrid(vector<int> v)
+vector<float> slice(vector<float> v, int start_index, int end_index) {
+  vector<float> res;
+  int i;
+  for(i = start_index; i < end_index; i++)
+  {
+    res.push_back(v[i]);
+  }
+  return res;
+}
+
+vector<vector<vector<float> > > meshgrid(vector<float> v)
 {
   int i, j;
-  vector<vector<int> > x1, x2;
-  vector<int> dummy;
+  vector<vector<float> > x1, x2;
+  vector<float> dummy;
   for(i = 1; i <= v.size(); i++) {
     for(j = 1; j <= v.size(); j++) {
       dummy.push_back(v[i-1]);
@@ -192,13 +222,13 @@ vector<vector<vector<int> > > meshgrid(vector<int> v)
     x1.push_back(v);
     dummy.clear();
   }
-  vector<vector<vector<int> > > res;
+  vector<vector<vector<float> > > res;
   res.push_back(x1);
   res.push_back(x2);
   return res;
 }
 
-vector<vector<float> > euclidean(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2)
+vector<vector<float> > euclidean(vector<vector<float> > x1, vector<vector<float> > x2, vector<vector<float> > y1,vector<vector<float> > y2)
 {
   vector<vector<float> > res;
   vector<float> dummy(x1[0].size());
@@ -212,7 +242,7 @@ vector<vector<float> > euclidean(vector<vector<int> > x1, vector<vector<int> > x
   return res;
 }
 
-vector<vector<float> > thin_plate_spline(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 1) {
+vector<vector<float> > thin_plate_spline(vector<vector<float> > x1, vector<vector<float> > x2, vector<vector<float> > y1,vector<vector<float> > y2, float log_fudge = 1) {
   vector<vector<float> > rr, res;
   rr = euclidean(x1, x2, y1, y2);
   res = elementWiseMatMul(elementWiseMatMul(rr, rr), matLog(rr));
@@ -227,16 +257,15 @@ vector<vector<float> > thin_plate_spline(vector<vector<int> > x1, vector<vector<
   return res;
 }
 
-vector<vector<float> > gaussian(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 1) {
+vector<vector<float> > gaussian(vector<vector<float> > x1, vector<vector<float> > x2, vector<vector<float> > y1,vector<vector<float> > y2, float log_fudge = 1) {
   vector<vector<float> > rr, res;
   rr = euclidean(x1, x2, y1, y2);
   float aa = log_fudge;
   res = expMat(elementWiseMatMul(rr, rr, aa));
-  display(res);
   return res;
 }
 
-vector<vector<float> > multiquadratic(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 1) {
+vector<vector<float> > multiquadratic(vector<vector<float> > x1, vector<vector<float> > x2, vector<vector<float> > y1,vector<vector<float> > y2, float log_fudge = 1) {
   vector<vector<float> > rr, res;
   rr = euclidean(x1, x2, y1, y2);
   float cc = log_fudge;
@@ -253,7 +282,7 @@ vector<vector<float> > multiquadratic(vector<vector<int> > x1, vector<vector<int
   return res;
 }
 
-vector<vector<float> > triharmonic_spline(vector<vector<int> > x1, vector<vector<int> > x2, vector<vector<int> > y1,vector<vector<int> > y2, float log_fudge = 0) {
+vector<vector<float> > triharmonic_spline(vector<vector<float> > x1, vector<vector<float> > x2, vector<vector<float> > y1,vector<vector<float> > y2, float log_fudge = 0) {
   vector<vector<float> > rr, res;
   rr = euclidean(x1, x2, y1, y2);
   float aa = log_fudge;
@@ -271,40 +300,35 @@ vector<vector<float> > triharmonic_spline(vector<vector<int> > x1, vector<vector
   return res;
 }
 
-float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> > xx, vector<vector<int> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
+vector<vector<float> > rbf(vector<float> xi, vector<float> yi, vector<float> zi, vector<vector<float> > xx, vector<vector<float> > yy, string basis_func="euclidean", float lambda=0, float log_fudge=0)
 {
   clock_t begin=clock();
-  vector<vector<vector<int> > > yres = meshgrid(xi);
-  vector<vector<vector<int> > > xres = meshgrid(yi);
-  int poly, i,j;
+  vector<vector<vector<float> > > yres = meshgrid(xi);
+  vector<vector<vector<float> > > xres = meshgrid(yi);
+  int poly_order, i,j;
   vector<vector<float> > basis, mat;
   vector<float> ff;
-
-  display(xres[0]);
-  display(xres[1]);
-  display(yres[0]);
-  display(yres[1]);
 
   switch (hashit(basis_func)) {
     case euclideanH:
       basis=euclidean(xres[0], xres[1], yres[0], yres[1]);
-      poly=1;
+      poly_order=1;
       break;
     case thin_plate_splineH:
       basis=thin_plate_spline(xres[0], xres[1], yres[0], yres[1], log_fudge);
-      poly=1;
+      poly_order=1;
       break;
     case gaussianH:
       basis=gaussian(xres[0], xres[1], yres[0], yres[1], log_fudge);
-      poly=0;
+      poly_order=0;
       break;
     case multiquadraticH:
       basis=multiquadratic(xres[0], xres[1], yres[0], yres[1], log_fudge);
-      poly=0;
+      poly_order=0;
       break;
     case triharmonic_splineH:
     basis=triharmonic_spline(xres[0], xres[1], yres[0], yres[1], log_fudge);
-      poly=0;
+      poly_order=0;
       break;
   }
 
@@ -313,16 +337,15 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
     scale = euclidean(xres[0], xres[1], yres[0], yres[1]);
     float scale_mean = mean(scale);
     lambda = square(scale_mean) * lambda;
-    printf("%f\n", lambda);
   }
 
   basis=matAdd(basis,eye(basis.size(),lambda));
 
-  if(poly == 0) {
+  if(poly_order == 0) {
     mat = basis;
     ff = zi;
   }
-  else if(poly == 1) {
+  else if(poly_order == 1) {
     vector<float> xi_float(xi.begin(), xi.end());
     vector<float> yi_float(yi.begin(), yi.end());
 
@@ -335,16 +358,53 @@ float rbf(vector<int> xi, vector<int> yi, vector<float> zi, vector<vector<int> >
     ff.push_back(0);
   }
 
+  vector<float> lam_c;
+  lam_c.push_back(-0.0006);
+  lam_c.push_back(0.0011);
+  lam_c.push_back(0.0017);
+  lam_c.push_back(-0.0023);
+  lam_c.push_back(0.1245);
+  lam_c.push_back(-0.0113);
+  lam_c.push_back(0.0363);
+
+  vector<float> lam = slice(lam_c, 0, lam_c.size()-3*poly_order);
+  vector<float> c = slice(lam_c, lam_c.size()-2*poly_order-1, lam_c.size());
+  vector<vector<float> > poly, zz=xx;
+
+  if(poly_order>0) {
+    poly = constantMatAdd(matAdd(constantMatMul(xx, c[1]), constantMatMul(yy, c[2])), c[0]);
+  }
+  else {
+    poly = xx;
+    for(i=0;i<xx.size();i++)
+    {
+      for(j=0;j<xx[0].size();j++)
+      {
+        poly[i][j]=0;
+      }
+    }
+  }
+
+  for(i=0;i<xx.size();i++)
+  {
+    for(j=0;j<xx[0].size();j++)
+    {
+      zz[i][j]=0;
+    }
+  }
+
+
+
   clock_t end=clock();
   float elapsed_sec=double(end-begin)/CLOCKS_PER_SEC;
   printf("Elapsed time: %f\n",elapsed_sec);
 
-  return 0;
+  return zz;
 }
 
 int main()
 {
-  vector<int> xi, yi;
+  vector<float> xi, yi;
   vector<float> zi;
   xi.push_back(4);
   xi.push_back(4);
@@ -359,8 +419,8 @@ int main()
   zi.push_back(0.3083);
   zi.push_back(0.3083);
 
-  vector<vector<int> > xx, yy;
-  vector<int> dummy, dummy1;
+  vector<vector<float> > xx, yy;
+  vector<float> dummy, dummy1;
   int i, j;
   for(i = 1; i <= 11; i++) {
     for(j = 1; j <= 11; j++) {
@@ -372,9 +432,7 @@ int main()
     dummy.clear();
     dummy1.clear();
   }
-  display(xx);
-  display(yy);
 
-  float zz = rbf(xi, yi, zi, xx, yy, "triharmonic_spline", 1, 2);
-  printf("%f\n", zz);
+  vector<vector<float> > zz = rbf(xi, yi, zi, xx, yy, "euclidean", 1, 2);
+  display(zz);
 }
