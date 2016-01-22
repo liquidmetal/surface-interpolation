@@ -4,8 +4,10 @@
 #include<vector>
 #include<stdio.h>
 #include<math.h>
+#include <cv.h>
 
 using namespace std;
+using namespace cv;
 
 enum string_code {
   euclideanH,
@@ -351,21 +353,29 @@ vector<vector<float> > rbf(vector<float> xi, vector<float> yi, vector<float> zi,
 
     vector<vector<float> > q = concatThree(ones(xi.size()), xi_float, yi_float);
     vector<vector<float> > q_dash = transpose(q);
-    vector<vector<float> > mat = concatTwoMatsBottom(concatTwoMatsSide(basis, q), concatTwoMatsSide(q_dash, eye(3, 0)));
+    mat = concatTwoMatsBottom(concatTwoMatsSide(basis, q), concatTwoMatsSide(q_dash, eye(3, 0)));
     ff = zi;
     ff.push_back(0);
     ff.push_back(0);
     ff.push_back(0);
   }
 
+  Mat ff_mat(ff.size(),1,CV_32FC1);
+  for(i=0;i<ff.size();i++)
+  {
+    ff_mat.at<float>(i)=ff[i];
+
+  }
+
+  Mat mat_mat(mat.size(),mat[0].size(),CV_32FC1);
+  for(i=0;i<mat.size()*mat[0].size();i++)
+  {
+    mat_mat.at<float>(i)=mat[i/mat[0].size()][i%mat[0].size()];
+  }
+  Mat lam_c_mat;
+  solve(mat_mat,ff_mat,lam_c_mat);
   vector<float> lam_c;
-  lam_c.push_back(-0.0006);
-  lam_c.push_back(0.0011);
-  lam_c.push_back(0.0017);
-  lam_c.push_back(-0.0023);
-  lam_c.push_back(0.1245);
-  lam_c.push_back(-0.0113);
-  lam_c.push_back(0.0363);
+  lam_c.assign((float*)lam_c_mat.datastart, (float*)lam_c_mat.dataend);
 
   vector<float> lam = slice(lam_c, 0, lam_c.size()-3*poly_order);
   vector<float> c = slice(lam_c, lam_c.size()-2*poly_order-1, lam_c.size());
