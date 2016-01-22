@@ -393,7 +393,45 @@ vector<vector<float> > rbf(vector<float> xi, vector<float> yi, vector<float> zi,
     }
   }
 
+  int ii, kk;
+  vector<vector<vector<float> > > container;
+  vector<vector<float> > temp;
+  vector<float> content;
+  content.push_back(0);
+  temp.push_back(content);
+  container.push_back(temp);
+  container.push_back(temp);
+  container.push_back(temp);
+  container.push_back(temp);
 
+  for(ii = 0; ii < xx.size()*xx[0].size(); ii++) {
+    for(kk = 0; kk < zi.size(); kk++) {
+      container[0][0][0] = xx[ii%xx.size()][ii/xx.size()];
+      container[1][0][0] = xi[kk];
+      container[2][0][0] = yy[ii%xx.size()][ii/xx.size()];
+      container[3][0][0] = yi[kk];
+      switch (hashit(basis_func)) {
+        case euclideanH:
+          basis=euclidean(container[0], container[1], container[2], container[3]);
+          break;
+        case thin_plate_splineH:
+          basis=thin_plate_spline(container[0], container[1], container[2], container[3], log_fudge);
+          break;
+        case gaussianH:
+          basis=gaussian(container[0], container[1], container[2], container[3], log_fudge);
+          break;
+        case multiquadraticH:
+          basis=multiquadratic(container[0], container[1], container[2], container[3], log_fudge);
+          break;
+        case triharmonic_splineH:
+        basis=triharmonic_spline(container[0], container[1], container[2], container[3], log_fudge);
+          break;
+      }
+      zz[ii%zz.size()][ii/zz.size()] += lam[kk]*basis[0][0];
+    }
+  }
+
+  zz=matAdd(zz,poly);
 
   clock_t end=clock();
   float elapsed_sec=double(end-begin)/CLOCKS_PER_SEC;
